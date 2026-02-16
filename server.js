@@ -62,10 +62,13 @@ app.get('/api/quizzes/:id', async (req, res) => {
 // 퀴즈 수정
 app.put('/api/quizzes/:id', async (req, res) => {
   const { id } = req.params;
-  const { title, description, is_active } = req.body;
+  const { title, description, is_active, time_limit, twist_enabled, twist_message, twist_pause_ms } = req.body;
   const { rows } = await pool.query(
-    'UPDATE quizzes SET title = COALESCE($1, title), description = COALESCE($2, description), is_active = COALESCE($3, is_active) WHERE id = $4 RETURNING *',
-    [title, description, is_active, id]
+    `UPDATE quizzes SET title=COALESCE($1,title), description=COALESCE($2,description),
+     is_active=COALESCE($3,is_active), time_limit=COALESCE($4,time_limit),
+     twist_enabled=COALESCE($5,twist_enabled), twist_message=COALESCE($6,twist_message),
+     twist_pause_ms=COALESCE($7,twist_pause_ms) WHERE id=$8 RETURNING *`,
+    [title, description, is_active, time_limit, twist_enabled, twist_message, twist_pause_ms, id]
   );
   res.json(rows[0]);
 });
@@ -81,22 +84,22 @@ app.delete('/api/quizzes/:id', async (req, res) => {
 // ============================================
 
 app.post('/api/questions', async (req, res) => {
-  const { quiz_id, text, type, order_num } = req.body;
+  const { quiz_id, text, type, order_num, is_twist } = req.body;
   const ord = order_num ?? (await pool.query(
     'SELECT COALESCE(MAX(order_num), 0) + 1 as next FROM questions WHERE quiz_id = $1', [quiz_id]
   )).rows[0].next;
   const { rows } = await pool.query(
-    'INSERT INTO questions (quiz_id, order_num, text, type) VALUES ($1, $2, $3, $4) RETURNING *',
-    [quiz_id, ord, text, type || 'choice']
+    'INSERT INTO questions (quiz_id, order_num, text, type, is_twist) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+    [quiz_id, ord, text, type || 'choice', is_twist || false]
   );
   res.json(rows[0]);
 });
 
 app.put('/api/questions/:id', async (req, res) => {
-  const { text, type, order_num } = req.body;
+  const { text, type, order_num, is_twist } = req.body;
   const { rows } = await pool.query(
-    'UPDATE questions SET text = COALESCE($1, text), type = COALESCE($2, type), order_num = COALESCE($3, order_num) WHERE id = $4 RETURNING *',
-    [text, type, order_num, req.params.id]
+    'UPDATE questions SET text=COALESCE($1,text), type=COALESCE($2,type), order_num=COALESCE($3,order_num), is_twist=COALESCE($4,is_twist) WHERE id=$5 RETURNING *',
+    [text, type, order_num, is_twist, req.params.id]
   );
   res.json(rows[0]);
 });
@@ -145,7 +148,7 @@ app.get('/api/play/:quiz_id', async (req, res) => {
   if (quiz.rows.length === 0) return res.status(404).json({ error: '퀴즈 없음' });
 
   const questions = await pool.query(
-    'SELECT id, order_num, text, type FROM questions WHERE quiz_id = $1 ORDER BY order_num', [quiz_id]
+    'SELECT id, order_num, text, type, is_twist FROM questions WHERE quiz_id = $1 ORDER BY order_num', [quiz_id]
   );
 
   const qIds = questions.rows.map(q => q.id);
@@ -170,10 +173,10 @@ app.get('/api/play/:quiz_id', async (req, res) => {
 // 답 제출 (참여 기록)
 app.post('/api/play/:quiz_id/answer', async (req, res) => {
   const { quiz_id } = req.params;
-  const { question_id, choice_id, session_id } = req.body;
+  const { question_id, choice_id, session_id, text_answer } = req.body;
   await pool.query(
-    'INSERT INTO responses (quiz_id, question_id, choice_id, session_id) VALUES ($1,$2,$3,$4)',
-    [quiz_id, question_id, choice_id, session_id]
+    'INSERT INTO responses (quiz_id, question_id, choice_id, session_id, text_answer) VALUES ($1,$2,$3,$4,$5)',
+    [quiz_id, question_id, choice_id || null, session_id, text_answer || null]
   );
   res.json({ ok: true });
 });

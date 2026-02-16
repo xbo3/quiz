@@ -4,164 +4,184 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>퀴즈 관리</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Outfit:wght@700;900&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body {
-  font-family: 'Noto Sans KR', -apple-system, sans-serif;
-  background:#0f0f1a; color:#e0e0e0; min-height:100vh; padding:20px;
-}
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+body { font-family:'Noto Sans KR',sans-serif; background:#05050a; color:#e0e0e0; min-height:100vh; padding:20px; }
 
-h1 { font-size:1.6rem; margin-bottom:20px; color:#fff; }
-h2 { font-size:1.2rem; margin:20px 0 10px; color:#aaa; }
+h1 { font-family:'Outfit',sans-serif; font-size:1.8rem; margin-bottom:20px; color:#fff; }
+h2 { font-size:1.1rem; margin:16px 0 8px; color:#888; }
 
-.container { max-width:800px; margin:0 auto; }
+.container { max-width:860px; margin:0 auto; }
 
 /* 퀴즈 목록 */
-.quiz-list { display:flex; flex-direction:column; gap:10px; margin-bottom:30px; }
+.quiz-list { display:flex; flex-direction:column; gap:8px; margin-bottom:24px; }
 .quiz-card {
-  background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
-  border-radius:12px; padding:16px 20px; cursor:pointer;
-  display:flex; justify-content:space-between; align-items:center;
-  transition:background 0.2s;
+  background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
+  border-radius:14px; padding:14px 18px; cursor:pointer;
+  display:flex; justify-content:space-between; align-items:center; transition:all 0.2s;
 }
-.quiz-card:hover { background:rgba(102,126,234,0.1); }
-.quiz-card.active { border-color:#667eea; background:rgba(102,126,234,0.15); }
+.quiz-card:hover { background:rgba(108,92,231,0.08); }
+.quiz-card.active { border-color:#6c5ce7; background:rgba(108,92,231,0.12); }
 .quiz-card-title { font-weight:700; }
-.quiz-card-info { font-size:0.85rem; color:#888; }
+.quiz-card-info { font-size:0.8rem; color:#666; }
 
 /* 버튼 */
-.btn {
-  border:none; color:#fff; font-size:0.9rem; font-weight:700;
-  padding:10px 20px; border-radius:8px; cursor:pointer; transition:opacity 0.2s;
-}
+.btn { border:none; color:#fff; font-size:0.85rem; font-weight:700; padding:9px 18px; border-radius:10px; cursor:pointer; transition:all 0.2s; }
 .btn:hover { opacity:0.85; }
-.btn-primary { background:linear-gradient(135deg,#667eea,#764ba2); }
+.btn-primary { background:linear-gradient(135deg,#6c5ce7,#764ba2); }
 .btn-danger { background:#e74c3c; }
-.btn-sm { padding:6px 14px; font-size:0.8rem; }
-.btn-group { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0; }
+.btn-outline { background:transparent; border:1px solid rgba(255,255,255,0.15); }
+.btn-sm { padding:5px 12px; font-size:0.78rem; }
+.btn-group { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
 
 /* 입력 */
-input, textarea, select {
-  background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15);
-  color:#fff; padding:10px 14px; border-radius:8px; font-size:0.95rem;
-  width:100%; margin-bottom:10px; font-family:inherit;
+input,textarea,select {
+  background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+  color:#fff; padding:9px 12px; border-radius:10px; font-size:0.9rem;
+  width:100%; margin-bottom:8px; font-family:inherit;
 }
-input:focus, textarea:focus, select:focus { outline:none; border-color:#667eea; }
-textarea { resize:vertical; min-height:60px; }
-label { font-size:0.85rem; color:#aaa; margin-bottom:4px; display:block; }
+input:focus,textarea:focus,select:focus { outline:none; border-color:#6c5ce7; }
+textarea { resize:vertical; min-height:50px; }
+label { font-size:0.8rem; color:#888; margin-bottom:3px; display:block; }
+
+/* 체크박스 */
+.toggle-row { display:flex; align-items:center; gap:10px; margin:8px 0; }
+.toggle-row input[type=checkbox] { width:18px; height:18px; accent-color:#6c5ce7; }
+.toggle-row label { margin:0; font-size:0.9rem; color:#ccc; }
 
 /* 문제 카드 */
 .question-card {
-  background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
-  border-radius:12px; padding:16px; margin-bottom:14px;
+  background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06);
+  border-radius:14px; padding:14px; margin-bottom:10px;
 }
-.question-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
-.question-num { font-weight:700; color:#667eea; }
+.question-card.twist { border-color:rgba(255,0,0,0.3); background:rgba(255,0,0,0.03); }
+.question-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.question-num { font-weight:700; color:#6c5ce7; font-size:0.9rem; }
+.question-num.twist { color:#ff0000; }
 
 /* 선택지 */
-.choice-row {
-  display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;
-}
+.choice-row { display:flex; gap:6px; align-items:center; margin-bottom:6px; flex-wrap:wrap; }
 .choice-row input { margin-bottom:0; }
-.choice-label-input { width:50px; text-align:center; flex-shrink:0; }
-.choice-text-input { flex:1; min-width:120px; }
-.choice-media-input { flex:1; min-width:120px; }
-.choice-type-select { width:80px; flex-shrink:0; }
-.choice-correct {
-  width:20px; height:20px; accent-color:#667eea; cursor:pointer; flex-shrink:0;
-}
+.choice-label-input { width:45px; text-align:center; flex-shrink:0; }
+.choice-text-input { flex:1; min-width:100px; }
+.choice-media-input { flex:1; min-width:100px; }
+.choice-type-select { width:70px; flex-shrink:0; }
+.choice-correct { width:18px; height:18px; accent-color:#6c5ce7; cursor:pointer; flex-shrink:0; }
 
-/* 미리보기 링크 */
-.preview-link { color:#667eea; font-size:0.85rem; text-decoration:none; margin-left:10px; }
+/* 설정 박스 */
+.settings-box {
+  background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06);
+  border-radius:14px; padding:14px; margin:12px 0;
+}
+.settings-box h3 { font-size:0.95rem; color:#6c5ce7; margin-bottom:10px; }
+
+/* 미리보기 */
+.preview-link { color:#6c5ce7; font-size:0.8rem; text-decoration:none; }
 .preview-link:hover { text-decoration:underline; }
 
-/* 빈 상태 */
-.empty-state { text-align:center; padding:40px; color:#555; }
-
-/* 새 퀴즈 폼 */
-.new-quiz-form { display:flex; gap:8px; margin-bottom:20px; }
+.empty-state { text-align:center; padding:30px; color:#444; }
+.new-quiz-form { display:flex; gap:6px; margin-bottom:16px; }
 .new-quiz-form input { margin-bottom:0; }
+
+.divider { border:none; border-top:1px solid rgba(255,255,255,0.06); margin:16px 0; }
+
+/* CSV */
+.csv-area { margin:10px 0; }
+.csv-area textarea { min-height:80px; font-size:0.8rem; font-family:monospace; }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>퀴즈 관리</h1>
+  <h1>QUIZ ADMIN</h1>
 
-  <!-- 새 퀴즈 만들기 -->
   <div class="new-quiz-form">
-    <input id="new-quiz-title" placeholder="새 퀴즈 제목" style="flex:1">
-    <button class="btn btn-primary" onclick="createQuiz()">+ 퀴즈 만들기</button>
+    <input id="new-quiz-title" placeholder="새 퀴즈 제목">
+    <button class="btn btn-primary" onclick="createQuiz()">+ 만들기</button>
   </div>
 
-  <!-- 퀴즈 목록 -->
   <div class="quiz-list" id="quiz-list"></div>
 
-  <!-- 선택된 퀴즈 편집 -->
   <div id="quiz-editor" style="display:none">
-    <hr style="border-color:rgba(255,255,255,0.1); margin:20px 0">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+    <hr class="divider">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
       <h2 id="editor-title" style="margin:0"></h2>
-      <div>
+      <div style="display:flex;gap:8px;align-items:center">
         <a id="preview-link" class="preview-link" target="_blank">미리보기</a>
-        <button class="btn btn-danger btn-sm" onclick="deleteQuiz()">퀴즈 삭제</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteQuiz()">삭제</button>
       </div>
     </div>
 
-    <!-- 퀴즈 정보 수정 -->
-    <div style="margin:14px 0">
+    <div style="margin:10px 0">
       <input id="edit-title" placeholder="퀴즈 제목" onchange="updateQuiz()">
-      <textarea id="edit-desc" placeholder="설명 (선택)" onchange="updateQuiz()"></textarea>
+      <textarea id="edit-desc" placeholder="설명" onchange="updateQuiz()"></textarea>
+    </div>
+
+    <!-- 설정 -->
+    <div class="settings-box">
+      <h3>설정</h3>
+      <label>제한시간 (초)</label>
+      <input id="edit-time-limit" type="number" placeholder="300" onchange="updateQuiz()">
+
+      <div class="toggle-row">
+        <input type="checkbox" id="edit-twist" onchange="updateQuiz()">
+        <label for="edit-twist">반전 문제 사용</label>
+      </div>
+
+      <div id="twist-settings" style="display:none">
+        <label>반전 전 메시지 (줄바꿈: \n)</label>
+        <textarea id="edit-twist-msg" placeholder="문제를 전부 다 풀었습니다\n수고하셨습니" onchange="updateQuiz()"></textarea>
+        <label>타이핑 후 대기시간 (ms)</label>
+        <input id="edit-twist-pause" type="number" placeholder="2000" onchange="updateQuiz()">
+      </div>
+    </div>
+
+    <!-- CSV 가져오기 -->
+    <div class="settings-box">
+      <h3>CSV 가져오기</h3>
+      <p style="font-size:0.8rem;color:#666;margin-bottom:8px">형식: 문제|타입|선택지라벨|선택지텍스트|미디어URL|미디어타입|정답여부|반전여부</p>
+      <div class="csv-area">
+        <textarea id="csv-input" placeholder="CSV 붙여넣기"></textarea>
+        <button class="btn btn-outline btn-sm" onclick="importCSV()">CSV 가져오기</button>
+        <button class="btn btn-outline btn-sm" onclick="exportCSV()">CSV 내보내기</button>
+      </div>
     </div>
 
     <!-- 문제 목록 -->
     <div id="questions-area"></div>
 
     <div class="btn-group">
-      <button class="btn btn-primary" onclick="addQuestion('choice')">+ 객관식 문제</button>
-      <button class="btn btn-primary" onclick="addQuestion('ox')">+ OX 문제</button>
+      <button class="btn btn-primary" onclick="addQuestion('choice')">+ 객관식</button>
+      <button class="btn btn-primary" onclick="addQuestion('ox')">+ OX</button>
+      <button class="btn btn-primary" style="background:linear-gradient(135deg,#00cec9,#0984e3)" onclick="addQuestion('input')">+ 입력형</button>
+      <button class="btn btn-primary" style="background:linear-gradient(135deg,#e74c3c,#c0392b)" onclick="addQuestion('choice', true)">+ 반전 문제</button>
     </div>
   </div>
 </div>
 
 <script>
 const API = window.location.origin;
-let quizzes = [];
-let selectedQuizId = null;
-let quizData = null;
-
-// ============ 퀴즈 목록 ============
+let quizzes = [], selectedQuizId = null, quizData = null;
 
 async function loadQuizzes() {
-  const res = await fetch(`${API}/api/quizzes`);
-  quizzes = await res.json();
+  quizzes = await (await fetch(`${API}/api/quizzes`)).json();
   renderQuizList();
 }
 
 function renderQuizList() {
   const el = document.getElementById('quiz-list');
-  if (quizzes.length === 0) {
-    el.innerHTML = '<div class="empty-state">퀴즈가 없습니다. 위에서 만들어보세요.</div>';
-    return;
-  }
+  if (!quizzes.length) { el.innerHTML = '<div class="empty-state">퀴즈가 없습니다</div>'; return; }
   el.innerHTML = quizzes.map(q => `
-    <div class="quiz-card ${q.id === selectedQuizId ? 'active' : ''}" onclick="selectQuiz(${q.id})">
-      <div>
-        <div class="quiz-card-title">${esc(q.title)}</div>
-        <div class="quiz-card-info">${q.description || ''} | ${q.is_active ? '활성' : '비활성'}</div>
-      </div>
+    <div class="quiz-card ${q.id===selectedQuizId?'active':''}" onclick="selectQuiz(${q.id})">
+      <div><div class="quiz-card-title">${esc(q.title)}</div><div class="quiz-card-info">${q.description||''}</div></div>
       <div class="quiz-card-info">#${q.id}</div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
 async function createQuiz() {
-  const title = document.getElementById('new-quiz-title').value.trim();
-  if (!title) return alert('제목을 입력하세요');
-  await fetch(`${API}/api/quizzes`, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ title })
-  });
+  const t = document.getElementById('new-quiz-title').value.trim();
+  if (!t) return;
+  await fetch(`${API}/api/quizzes`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({title:t}) });
   document.getElementById('new-quiz-title').value = '';
   await loadQuizzes();
 }
@@ -169,143 +189,168 @@ async function createQuiz() {
 async function selectQuiz(id) {
   selectedQuizId = id;
   renderQuizList();
-  const res = await fetch(`${API}/api/quizzes/${id}`);
-  quizData = await res.json();
+  quizData = await (await fetch(`${API}/api/quizzes/${id}`)).json();
   renderEditor();
 }
 
 async function updateQuiz() {
   if (!selectedQuizId) return;
+  const twistEnabled = document.getElementById('edit-twist').checked;
+  document.getElementById('twist-settings').style.display = twistEnabled ? 'block' : 'none';
   await fetch(`${API}/api/quizzes/${selectedQuizId}`, {
     method:'PUT', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({
+    body:JSON.stringify({
       title: document.getElementById('edit-title').value,
-      description: document.getElementById('edit-desc').value
+      description: document.getElementById('edit-desc').value,
+      time_limit: parseInt(document.getElementById('edit-time-limit').value) || 300,
+      twist_enabled: twistEnabled,
+      twist_message: document.getElementById('edit-twist-msg').value,
+      twist_pause_ms: parseInt(document.getElementById('edit-twist-pause').value) || 2000
     })
   });
   loadQuizzes();
 }
 
 async function deleteQuiz() {
-  if (!confirm('정말 삭제?')) return;
-  await fetch(`${API}/api/quizzes/${selectedQuizId}`, { method:'DELETE' });
+  if (!confirm('삭제?')) return;
+  await fetch(`${API}/api/quizzes/${selectedQuizId}`, {method:'DELETE'});
   selectedQuizId = null;
   document.getElementById('quiz-editor').style.display = 'none';
   await loadQuizzes();
 }
 
-// ============ 편집기 ============
-
 function renderEditor() {
-  document.getElementById('quiz-editor').style.display = 'block';
+  const ed = document.getElementById('quiz-editor');
+  ed.style.display = 'block';
   document.getElementById('editor-title').textContent = quizData.title;
   document.getElementById('edit-title').value = quizData.title;
   document.getElementById('edit-desc').value = quizData.description || '';
+  document.getElementById('edit-time-limit').value = quizData.time_limit || 300;
+  document.getElementById('edit-twist').checked = quizData.twist_enabled || false;
+  document.getElementById('edit-twist-msg').value = quizData.twist_message || '';
+  document.getElementById('edit-twist-pause').value = quizData.twist_pause_ms || 2000;
+  document.getElementById('twist-settings').style.display = quizData.twist_enabled ? 'block' : 'none';
   document.getElementById('preview-link').href = `/?id=${quizData.id}`;
 
   const area = document.getElementById('questions-area');
-  if (!quizData.questions || quizData.questions.length === 0) {
-    area.innerHTML = '<div class="empty-state">문제가 없습니다. 아래에서 추가하세요.</div>';
+  if (!quizData.questions || !quizData.questions.length) {
+    area.innerHTML = '<div class="empty-state">문제가 없습니다</div>';
     return;
   }
 
-  area.innerHTML = quizData.questions.map((q, qi) => `
-    <div class="question-card" data-qid="${q.id}">
+  let normalIdx = 0;
+  area.innerHTML = quizData.questions.map(q => {
+    const isTwist = q.is_twist;
+    if (!isTwist) normalIdx++;
+    return `
+    <div class="question-card ${isTwist?'twist':''}" data-qid="${q.id}">
       <div class="question-header">
-        <span class="question-num">Q${qi+1} (${q.type === 'ox' ? 'OX' : '객관식'})</span>
+        <span class="question-num ${isTwist?'twist':''}">${isTwist ? 'TWIST (반전)' : `Q${normalIdx} (${q.type==='ox'?'OX':q.type==='input'?'입력형':'객관식'})`}</span>
         <div>
-          <button class="btn btn-sm btn-primary" onclick="addChoice(${q.id}, '${q.type}')">+ 선택지</button>
+          ${q.type!=='input'?`<button class="btn btn-sm btn-primary" onclick="addChoice(${q.id},'${q.type}')">+ 선택지</button>`:''}
           <button class="btn btn-sm btn-danger" onclick="deleteQuestion(${q.id})">삭제</button>
         </div>
       </div>
-      <input value="${esc(q.text)}" placeholder="문제 내용"
-        onchange="updateQuestion(${q.id}, this.value)">
-      <div style="margin-top:8px">
-        ${(q.choices || []).map(c => `
+      <input value="${esc(q.text)}" placeholder="문제 내용" onchange="updateQuestion(${q.id},this.value)">
+      <div style="margin-top:6px">
+        ${q.type==='input' ? '<div style="color:#666;font-size:0.8rem;padding:8px;border:1px dashed rgba(255,255,255,0.08);border-radius:8px">사용자가 직접 입력하는 문제입니다 (선택지 없음)</div>' : (q.choices||[]).map(c => `
           <div class="choice-row">
-            <input class="choice-label-input" value="${esc(c.label)}" placeholder="A"
-              onchange="updateChoice(${c.id}, 'label', this.value)">
-            <input class="choice-text-input" value="${esc(c.text)}" placeholder="선택지 내용"
-              onchange="updateChoice(${c.id}, 'text', this.value)">
-            <input class="choice-media-input" value="${esc(c.media_url || '')}" placeholder="미디어 URL (유튜브/mp4/이미지)"
-              onchange="updateChoice(${c.id}, 'media_url', this.value)">
-            <select class="choice-type-select" onchange="updateChoice(${c.id}, 'media_type', this.value)">
+            <input class="choice-label-input" value="${esc(c.label)}" placeholder="A" onchange="updateChoice(${c.id},'label',this.value)">
+            <input class="choice-text-input" value="${esc(c.text)}" placeholder="선택지" onchange="updateChoice(${c.id},'text',this.value)">
+            <input class="choice-media-input" value="${esc(c.media_url||'')}" placeholder="미디어 URL" onchange="updateChoice(${c.id},'media_url',this.value)">
+            <select class="choice-type-select" onchange="updateChoice(${c.id},'media_type',this.value)">
               <option value="video" ${c.media_type==='video'?'selected':''}>영상</option>
               <option value="image" ${c.media_type==='image'?'selected':''}>이미지</option>
             </select>
-            <input type="checkbox" class="choice-correct" title="정답" ${c.is_correct?'checked':''}
-              onchange="updateChoice(${c.id}, 'is_correct', this.checked)">
+            <input type="checkbox" class="choice-correct" title="정답" ${c.is_correct?'checked':''} onchange="updateChoice(${c.id},'is_correct',this.checked)">
             <button class="btn btn-danger btn-sm" onclick="deleteChoice(${c.id})">X</button>
-          </div>
-        `).join('')}
+          </div>`).join(''))}
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
-// ============ 문제 CRUD ============
-
-async function addQuestion(type) {
+// 문제 CRUD
+async function addQuestion(type, isTwist) {
   await fetch(`${API}/api/questions`, {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({
-      quiz_id: selectedQuizId,
-      text: type === 'ox' ? 'O 또는 X?' : '문제를 입력하세요',
-      type
-    })
+    body:JSON.stringify({ quiz_id:selectedQuizId, text:isTwist?'반전 문제를 입력하세요':type==='input'?'답을 입력해주세요':type==='ox'?'O 또는 X?':'문제를 입력하세요', type, is_twist:!!isTwist })
   });
   await selectQuiz(selectedQuizId);
 }
-
 async function updateQuestion(id, text) {
-  await fetch(`${API}/api/questions/${id}`, {
-    method:'PUT', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ text })
-  });
+  await fetch(`${API}/api/questions/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text}) });
 }
-
 async function deleteQuestion(id) {
-  if (!confirm('문제 삭제?')) return;
-  await fetch(`${API}/api/questions/${id}`, { method:'DELETE' });
+  if (!confirm('삭제?')) return;
+  await fetch(`${API}/api/questions/${id}`, {method:'DELETE'});
   await selectQuiz(selectedQuizId);
 }
 
-// ============ 선택지 CRUD ============
-
-async function addChoice(questionId, type) {
-  const labels = type === 'ox' ? ['O','X'] : ['A','B','C','D'];
-  const existing = quizData.questions.find(q => q.id === questionId);
-  const nextLabel = labels[existing?.choices?.length || 0] || String(existing?.choices?.length + 1);
+// 선택지 CRUD
+async function addChoice(qid, type) {
+  const labels = type==='ox'?['O','X']:['A','B','C','D'];
+  const q = quizData.questions.find(x=>x.id===qid);
+  const nl = labels[q?.choices?.length||0] || String((q?.choices?.length||0)+1);
   await fetch(`${API}/api/choices`, {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({
-      question_id: questionId,
-      label: nextLabel,
-      text: type === 'ox' ? nextLabel : '선택지',
-      order_num: existing?.choices?.length || 0
-    })
+    body:JSON.stringify({ question_id:qid, label:nl, text:type==='ox'?nl:'선택지', order_num:q?.choices?.length||0 })
   });
   await selectQuiz(selectedQuizId);
 }
-
 async function updateChoice(id, field, value) {
-  await fetch(`${API}/api/choices/${id}`, {
-    method:'PUT', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ [field]: value })
-  });
+  await fetch(`${API}/api/choices/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({[field]:value}) });
 }
-
 async function deleteChoice(id) {
-  await fetch(`${API}/api/choices/${id}`, { method:'DELETE' });
+  await fetch(`${API}/api/choices/${id}`, {method:'DELETE'});
   await selectQuiz(selectedQuizId);
 }
 
-// ============ 유틸 ============
-
-function esc(str) {
-  if (!str) return '';
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// CSV
+async function importCSV() {
+  const text = document.getElementById('csv-input').value.trim();
+  if (!text) return;
+  const lines = text.split('\n').filter(l=>l.trim());
+  let currentQid = null;
+  for (const line of lines) {
+    const cols = line.split('|').map(c=>c.trim());
+    if (cols.length < 4) continue;
+    const [question, type, label, choiceText, mediaUrl, mediaType, isCorrect, isTwist] = cols;
+    if (question) {
+      const res = await fetch(`${API}/api/questions`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ quiz_id:selectedQuizId, text:question, type:type||'choice', is_twist:isTwist==='true'||isTwist==='1' })
+      });
+      const q = await res.json();
+      currentQid = q.id;
+    }
+    if (currentQid && label) {
+      await fetch(`${API}/api/choices`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ question_id:currentQid, label, text:choiceText||label, media_url:mediaUrl||null, media_type:mediaType||'video', is_correct:isCorrect==='true'||isCorrect==='1' })
+      });
+    }
+  }
+  document.getElementById('csv-input').value = '';
+  await selectQuiz(selectedQuizId);
 }
+
+function exportCSV() {
+  if (!quizData || !quizData.questions) return;
+  let csv = '문제|타입|라벨|선택지|미디어URL|미디어타입|정답|반전\n';
+  quizData.questions.forEach(q => {
+    (q.choices||[]).forEach((c,i) => {
+      csv += `${i===0?q.text:''}|${i===0?q.type:''}|${c.label}|${c.text}|${c.media_url||''}|${c.media_type}|${c.is_correct}|${q.is_twist}\n`;
+    });
+  });
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `quiz_${selectedQuizId}.csv`;
+  a.click();
+}
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 loadQuizzes();
 </script>
