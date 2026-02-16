@@ -532,7 +532,8 @@ function renderChoices(q, area, isTwist) {
       btn.style.color = c.label === 'O' ? '#00cec9' : '#ff6b6b';
       btn.style.borderColor = c.label === 'O' ? 'rgba(0,206,201,0.2)' : 'rgba(255,107,107,0.2)';
     } else {
-      btn.innerHTML = `<span class="choice-label">${c.label}</span><span>${c.text}</span>`;
+      const iconStr = c.icon ? `${c.icon} ` : '';
+      btn.innerHTML = `<span class="choice-label">${c.label}</span><span>${iconStr}${c.text}</span>`;
     }
     btn.addEventListener('click', () => onChoiceClick(c, btn, isTwist));
     div.appendChild(btn);

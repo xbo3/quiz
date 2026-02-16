@@ -59,6 +59,7 @@ async function initDB() {
         ALTER TABLE quizzes ADD COLUMN IF NOT EXISTS twist_pause_ms INT DEFAULT 2000;
         ALTER TABLE questions ADD COLUMN IF NOT EXISTS is_twist BOOLEAN DEFAULT false;
         ALTER TABLE responses ADD COLUMN IF NOT EXISTS text_answer TEXT;
+        ALTER TABLE choices ADD COLUMN IF NOT EXISTS icon TEXT;
       END $$;
     `);
     console.log('DB 테이블 초기화 완료');

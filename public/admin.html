@@ -68,6 +68,15 @@ label { font-size:0.8rem; color:#888; margin-bottom:3px; display:block; }
 .choice-media-input { flex:1; min-width:100px; }
 .choice-type-select { width:70px; flex-shrink:0; }
 .choice-correct { width:18px; height:18px; accent-color:#6c5ce7; cursor:pointer; flex-shrink:0; }
+.choice-icon-input { width:40px; text-align:center; flex-shrink:0; font-size:1.1rem; }
+
+/* 순서변경 버튼 */
+.move-btn {
+  background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+  color:#aaa; font-size:0.75rem; padding:3px 8px; border-radius:6px; cursor:pointer;
+  transition:all 0.15s;
+}
+.move-btn:hover { background:rgba(108,92,231,0.2); color:#fff; border-color:#6c5ce7; }
 
 /* 설정 박스 */
 .settings-box {
@@ -239,14 +248,19 @@ function renderEditor() {
   }
 
   let normalIdx = 0;
-  area.innerHTML = quizData.questions.map(q => {
+  const qs = quizData.questions;
+  area.innerHTML = qs.map((q, qi) => {
     const isTwist = q.is_twist;
     if (!isTwist) normalIdx++;
+    const prevId = qi > 0 ? qs[qi-1].id : null;
+    const nextId = qi < qs.length-1 ? qs[qi+1].id : null;
     return `
     <div class="question-card ${isTwist?'twist':''}" data-qid="${q.id}">
       <div class="question-header">
         <span class="question-num ${isTwist?'twist':''}">${isTwist ? 'TWIST (반전)' : `Q${normalIdx} (${q.type==='ox'?'OX':q.type==='input'?'입력형':'객관식'})`}</span>
-        <div>
+        <div style="display:flex;gap:4px;align-items:center">
+          ${prevId ? `<button class="move-btn" onclick="swapQuestion(${q.id},${prevId})" title="위로">▲</button>` : ''}
+          ${nextId ? `<button class="move-btn" onclick="swapQuestion(${q.id},${nextId})" title="아래로">▼</button>` : ''}
           ${q.type!=='input'?`<button class="btn btn-sm btn-primary" onclick="addChoice(${q.id},'${q.type}')">+ 선택지</button>`:''}
           <button class="btn btn-sm btn-danger" onclick="deleteQuestion(${q.id})">삭제</button>
         </div>
@@ -255,6 +269,7 @@ function renderEditor() {
       <div style="margin-top:6px">
         ${q.type==='input' ? '<div style="color:#666;font-size:0.8rem;padding:8px;border:1px dashed rgba(255,255,255,0.08);border-radius:8px">사용자가 직접 입력하는 문제입니다 (선택지 없음)</div>' : (q.choices||[]).map(c => `
           <div class="choice-row">
+            <input class="choice-icon-input" value="${esc(c.icon||'')}" placeholder="🎯" title="아이콘" onchange="updateChoice(${c.id},'icon',this.value)">
             <input class="choice-label-input" value="${esc(c.label)}" placeholder="A" onchange="updateChoice(${c.id},'label',this.value)">
             <input class="choice-text-input" value="${esc(c.text)}" placeholder="선택지" onchange="updateChoice(${c.id},'text',this.value)">
             <input class="choice-media-input" value="${esc(c.media_url||'')}" placeholder="미디어 URL" onchange="updateChoice(${c.id},'media_url',this.value)">
@@ -284,6 +299,13 @@ async function updateQuestion(id, text) {
 async function deleteQuestion(id) {
   if (!confirm('삭제?')) return;
   await fetch(`${API}/api/questions/${id}`, {method:'DELETE'});
+  await selectQuiz(selectedQuizId);
+}
+async function swapQuestion(id1, id2) {
+  await fetch(`${API}/api/questions/swap`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({id1, id2})
+  });
   await selectQuiz(selectedQuizId);
 }
 

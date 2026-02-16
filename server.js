@@ -109,24 +109,35 @@ app.delete('/api/questions/:id', async (req, res) => {
   res.json({ ok: true });
 });
 
+// 문제 순서 교환
+app.post('/api/questions/swap', async (req, res) => {
+  const { id1, id2 } = req.body;
+  const q1 = await pool.query('SELECT order_num FROM questions WHERE id=$1', [id1]);
+  const q2 = await pool.query('SELECT order_num FROM questions WHERE id=$1', [id2]);
+  if (!q1.rows.length || !q2.rows.length) return res.status(404).json({ error: '문제 없음' });
+  await pool.query('UPDATE questions SET order_num=$1 WHERE id=$2', [q2.rows[0].order_num, id1]);
+  await pool.query('UPDATE questions SET order_num=$1 WHERE id=$2', [q1.rows[0].order_num, id2]);
+  res.json({ ok: true });
+});
+
 // ============================================
 // 선택지 API
 // ============================================
 
 app.post('/api/choices', async (req, res) => {
-  const { question_id, label, text, media_url, media_type, is_correct, order_num } = req.body;
+  const { question_id, label, text, media_url, media_type, is_correct, order_num, icon } = req.body;
   const { rows } = await pool.query(
-    'INSERT INTO choices (question_id, label, text, media_url, media_type, is_correct, order_num) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
-    [question_id, label, text, media_url || null, media_type || 'video', is_correct || false, order_num || 0]
+    'INSERT INTO choices (question_id, label, text, media_url, media_type, is_correct, order_num, icon) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
+    [question_id, label, text, media_url || null, media_type || 'video', is_correct || false, order_num || 0, icon || null]
   );
   res.json(rows[0]);
 });
 
 app.put('/api/choices/:id', async (req, res) => {
-  const { label, text, media_url, media_type, is_correct, order_num } = req.body;
+  const { label, text, media_url, media_type, is_correct, order_num, icon } = req.body;
   const { rows } = await pool.query(
-    'UPDATE choices SET label=COALESCE($1,label), text=COALESCE($2,text), media_url=COALESCE($3,media_url), media_type=COALESCE($4,media_type), is_correct=COALESCE($5,is_correct), order_num=COALESCE($6,order_num) WHERE id=$7 RETURNING *',
-    [label, text, media_url, media_type, is_correct, order_num, req.params.id]
+    'UPDATE choices SET label=COALESCE($1,label), text=COALESCE($2,text), media_url=COALESCE($3,media_url), media_type=COALESCE($4,media_type), is_correct=COALESCE($5,is_correct), order_num=COALESCE($6,order_num), icon=COALESCE($7,icon) WHERE id=$8 RETURNING *',
+    [label, text, media_url, media_type, is_correct, order_num, icon, req.params.id]
   );
   res.json(rows[0]);
 });
@@ -155,7 +166,7 @@ app.get('/api/play/:quiz_id', async (req, res) => {
   let choices = [];
   if (qIds.length > 0) {
     const result = await pool.query(
-      'SELECT id, question_id, label, text, media_url, media_type, order_num FROM choices WHERE question_id = ANY($1) ORDER BY order_num',
+      'SELECT id, question_id, label, text, media_url, media_type, is_correct, order_num, icon FROM choices WHERE question_id = ANY($1) ORDER BY order_num',
       [qIds]
     );
     choices = result.rows;
