@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QUIZ</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Noto Sans KR', -apple-system, sans-serif;
+  background: #0a0a1a;
+  color: #fff;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
+
+/* 로딩/에러 */
+#loading { display:flex; align-items:center; justify-content:center; height:100vh; font-size:1.2rem; color:#888; }
+#error { display:none; text-align:center; padding:60px 20px; color:#ff6b6b; }
+
+/* 시작 화면 */
+#start-screen {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  height:100vh; padding:40px 20px; text-align:center;
+}
+#start-screen h1 { font-size:2.4rem; font-weight:900; margin-bottom:12px; }
+#start-screen p { color:#aaa; font-size:1.1rem; margin-bottom:40px; }
+#start-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border:none; color:#fff; font-size:1.2rem; font-weight:700;
+  padding:18px 60px; border-radius:50px; cursor:pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+#start-btn:hover { transform:scale(1.05); box-shadow:0 8px 30px rgba(102,126,234,0.4); }
+
+/* 퀴즈 화면 */
+#quiz-screen { display:none; min-height:100vh; padding:20px; max-width:600px; margin:0 auto; }
+
+/* 진행바 */
+.progress-bar {
+  width:100%; height:6px; background:#1a1a2e; border-radius:3px; margin-bottom:30px; overflow:hidden;
+}
+.progress-fill {
+  height:100%; background:linear-gradient(90deg, #667eea, #764ba2);
+  border-radius:3px; transition:width 0.4s ease;
+}
+.progress-text { text-align:center; color:#888; font-size:0.85rem; margin-bottom:20px; }
+
+/* 문제 */
+.question-area { text-align:center; margin-bottom:40px; }
+.q-number { font-size:0.9rem; color:#667eea; font-weight:700; margin-bottom:10px; }
+.q-text { font-size:1.5rem; font-weight:700; line-height:1.5; }
+
+/* 선택지 */
+.choices { display:flex; flex-direction:column; gap:14px; }
+.choice-btn {
+  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(255,255,255,0.1);
+  color:#fff; font-size:1.1rem; padding:18px 24px;
+  border-radius:16px; cursor:pointer; text-align:left;
+  transition: all 0.2s; display:flex; align-items:center; gap:14px;
+}
+.choice-btn:hover {
+  background: rgba(102,126,234,0.15);
+  border-color: rgba(102,126,234,0.5);
+  transform: translateX(4px);
+}
+.choice-btn.selected {
+  background: rgba(102,126,234,0.25);
+  border-color: #667eea;
+}
+.choice-label {
+  width:36px; height:36px; border-radius:50%;
+  background:rgba(255,255,255,0.1); display:flex;
+  align-items:center; justify-content:center;
+  font-weight:700; font-size:0.95rem; flex-shrink:0;
+}
+.choice-btn.selected .choice-label {
+  background:#667eea;
+}
+
+/* OX 버튼 */
+.choices.ox { flex-direction:row; justify-content:center; gap:20px; }
+.choices.ox .choice-btn {
+  width:140px; height:140px; border-radius:50%;
+  justify-content:center; text-align:center; font-size:2.5rem; font-weight:900;
+  padding:0;
+}
+.choices.ox .choice-btn .choice-label { display:none; }
+
+/* 미디어 오버레이 */
+#media-overlay {
+  display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.95); z-index:1000;
+  flex-direction:column; align-items:center; justify-content:center;
+}
+#media-overlay.show { display:flex; }
+#media-overlay video, #media-overlay img {
+  max-width:90%; max-height:70vh; border-radius:12px;
+}
+#media-overlay iframe {
+  width:90%; max-width:800px; aspect-ratio:16/9; border:none; border-radius:12px;
+}
+#next-btn {
+  margin-top:30px; background:linear-gradient(135deg, #667eea, #764ba2);
+  border:none; color:#fff; font-size:1.1rem; font-weight:700;
+  padding:16px 50px; border-radius:50px; cursor:pointer;
+  transition: transform 0.2s;
+}
+#next-btn:hover { transform:scale(1.05); }
+.media-label {
+  font-size:1.2rem; font-weight:700; margin-bottom:20px; color:#ddd;
+}
+
+/* 결과 화면 */
+#result-screen {
+  display:none; min-height:100vh; padding:40px 20px;
+  text-align:center; flex-direction:column;
+  align-items:center; justify-content:center;
+}
+#result-screen.show { display:flex; }
+#result-screen h2 { font-size:2rem; font-weight:900; margin-bottom:16px; }
+#result-screen .score { font-size:3.5rem; font-weight:900; color:#667eea; margin-bottom:10px; }
+#result-screen .sub { color:#888; font-size:1rem; margin-bottom:40px; }
+#retry-btn {
+  background: rgba(255,255,255,0.1); border:2px solid rgba(255,255,255,0.2);
+  color:#fff; font-size:1rem; padding:14px 40px; border-radius:50px; cursor:pointer;
+}
+
+/* 미디어 없을때 메시지 */
+.no-media-msg {
+  color:#888; font-size:1rem; margin-bottom:20px;
+}
+</style>
+</head>
+<body>
+
+<div id="loading">퀴즈를 불러오는 중...</div>
+<div id="error"><h2>퀴즈를 찾을 수 없습니다</h2></div>
+
+<div id="start-screen" style="display:none">
+  <h1 id="quiz-title"></h1>
+  <p id="quiz-desc"></p>
+  <button id="start-btn">시작하기</button>
+</div>
+
+<div id="quiz-screen">
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+  <div class="progress-text" id="progress-text"></div>
+  <div class="question-area">
+    <div class="q-number" id="q-number"></div>
+    <div class="q-text" id="q-text"></div>
+  </div>
+  <div class="choices" id="choices"></div>
+</div>
+
+<div id="media-overlay">
+  <div class="media-label" id="media-label"></div>
+  <div id="media-container"></div>
+  <button id="next-btn">다음</button>
+</div>
+
+<div id="result-screen">
+  <h2>퀴즈 완료!</h2>
+  <div class="score" id="score"></div>
+  <div class="sub" id="result-sub"></div>
+  <button id="retry-btn" onclick="location.reload()">다시 하기</button>
+</div>
+
+<script>
+const API = window.location.origin;
+let quiz = null;
+let currentQ = 0;
+let correctCount = 0;
+let sessionId = 'sess_' + Math.random().toString(36).substr(2, 9);
+
+// 퀴즈 ID: URL에서 추출 (/embed/1 or ?id=1)
+function getQuizId() {
+  const pathMatch = location.pathname.match(/\/embed\/(\d+)/);
+  if (pathMatch) return pathMatch[1];
+  const params = new URLSearchParams(location.search);
+  return params.get('id') || '1';
+}
+
+async function loadQuiz() {
+  try {
+    const res = await fetch(`${API}/api/play/${getQuizId()}`);
+    if (!res.ok) throw new Error('not found');
+    quiz = await res.json();
+
+    if (!quiz.questions || quiz.questions.length === 0) {
+      throw new Error('no questions');
+    }
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('quiz-title').textContent = quiz.title;
+    document.getElementById('quiz-desc').textContent = quiz.description || `${quiz.questions.length}문제`;
+    document.getElementById('start-screen').style.display = 'flex';
+  } catch (e) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display = 'block';
+  }
+}
+
+document.getElementById('start-btn').addEventListener('click', () => {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('quiz-screen').style.display = 'block';
+  showQuestion();
+});
+
+function showQuestion() {
+  const q = quiz.questions[currentQ];
+  const total = quiz.questions.length;
+
+  document.getElementById('progress-fill').style.width = `${((currentQ) / total) * 100}%`;
+  document.getElementById('progress-text').textContent = `${currentQ + 1} / ${total}`;
+  document.getElementById('q-number').textContent = `Q${currentQ + 1}`;
+  document.getElementById('q-text').textContent = q.text;
+
+  const choicesDiv = document.getElementById('choices');
+  choicesDiv.innerHTML = '';
+  choicesDiv.className = q.type === 'ox' ? 'choices ox' : 'choices';
+
+  q.choices.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    if (q.type === 'ox') {
+      btn.textContent = c.label;
+      btn.style.color = c.label === 'O' ? '#4ecdc4' : '#ff6b6b';
+      btn.style.borderColor = c.label === 'O' ? 'rgba(78,205,196,0.3)' : 'rgba(255,107,107,0.3)';
+    } else {
+      btn.innerHTML = `<span class="choice-label">${c.label}</span><span>${c.text}</span>`;
+    }
+    btn.addEventListener('click', () => selectChoice(c, btn));
+    choicesDiv.appendChild(btn);
+  });
+}
+
+async function selectChoice(choice, btn) {
+  // 선택 표시
+  document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+
+  // 정답 체크
+  if (choice.is_correct) correctCount++;
+
+  // 참여 기록
+  fetch(`${API}/api/play/${quiz.id}/answer`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      question_id: quiz.questions[currentQ].id,
+      choice_id: choice.id,
+      session_id: sessionId
+    })
+  }).catch(() => {});
+
+  // 짧은 딜레이 후 미디어 표시
+  setTimeout(() => showMedia(choice), 300);
+}
+
+function showMedia(choice) {
+  const overlay = document.getElementById('media-overlay');
+  const container = document.getElementById('media-container');
+  const label = document.getElementById('media-label');
+
+  label.textContent = `"${choice.text}" 선택`;
+  container.innerHTML = '';
+
+  if (choice.media_url) {
+    const url = choice.media_url;
+    // 유튜브 감지
+    const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/);
+    if (ytMatch) {
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
+      iframe.allow = 'autoplay; encrypted-media';
+      iframe.allowFullscreen = true;
+      container.appendChild(iframe);
+    } else if (choice.media_type === 'image' || /\.(jpg|jpeg|png|gif|webp)$/i.test(url)) {
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = choice.text;
+      container.appendChild(img);
+    } else {
+      const video = document.createElement('video');
+      video.src = url;
+      video.controls = true;
+      video.autoplay = true;
+      video.style.maxWidth = '90%';
+      video.style.maxHeight = '70vh';
+      container.appendChild(video);
+    }
+  } else {
+    container.innerHTML = '<p class="no-media-msg">미디어가 아직 등록되지 않았습니다</p>';
+  }
+
+  overlay.classList.add('show');
+
+  // 마지막 문제면 버튼 텍스트 변경
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.textContent = currentQ >= quiz.questions.length - 1 ? '결과 보기' : '다음';
+}
+
+document.getElementById('next-btn').addEventListener('click', () => {
+  const overlay = document.getElementById('media-overlay');
+  overlay.classList.remove('show');
+
+  // 유튜브 iframe 정지
+  const iframe = overlay.querySelector('iframe');
+  if (iframe) iframe.src = '';
+  const video = overlay.querySelector('video');
+  if (video) { video.pause(); video.src = ''; }
+
+  currentQ++;
+  if (currentQ < quiz.questions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+});
+
+function showResult() {
+  document.getElementById('quiz-screen').style.display = 'none';
+  const total = quiz.questions.length;
+  document.getElementById('score').textContent = `${correctCount} / ${total}`;
+  document.getElementById('result-sub').textContent =
+    correctCount === total ? '완벽해요!' :
+    correctCount >= total * 0.7 ? '잘했어요!' :
+    '다시 도전해보세요!';
+  document.getElementById('result-screen').classList.add('show');
+}
+
+loadQuiz();
+</script>
+</body>
+</html>
